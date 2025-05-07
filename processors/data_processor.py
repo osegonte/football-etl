@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime
 from typing import Dict, List, Optional, Union, Any, Tuple
 
-from logger import PipelineLogger
+from utils.logger import PipelineLogger
 from utils.data_utils import (
     normalize_team_name, normalize_date, generate_match_id,
     validate_data, join_fixtures_with_team_history, aggregate_team_stats

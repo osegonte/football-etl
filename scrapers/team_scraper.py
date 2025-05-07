@@ -469,163 +469,84 @@ class TeamHistoryScraper:
             if self.logger:
                 self.logger.error(f"Error scraping match details from {match_url}: {str(e)}")
             return {}
+def scrape_teams_from_fixtures(
+    self,
+    fixtures_df: pd.DataFrame,
+    max_workers: int = 4,
+    lookback_matches: int = 7
+) -> pd.DataFrame:
+    """Scrape historical data for all teams in a fixtures DataFrame.
     
-    def scrape_teams_from_fixtures(
-        self,
-        fixtures_df: pd.DataFrame,
-        max_workers: int = 4,
-        lookback_matches: int = 7
-    ) -> pd.DataFrame:
-        """Scrape historical data for all teams in a fixtures DataFrame.
+    Args:
+        fixtures_df: DataFrame containing fixtures with home_team and away_team columns
+        max_workers: Maximum number of concurrent scraping workers
+        lookback_matches: Number of most recent matches to collect per team
         
-        Args:
-            fixtures_df: DataFrame containing fixtures with home_team and away_team columns
-            max_workers: Maximum number of concurrent scraping workers
-            lookback_matches: Number of most recent matches to collect per team
+    Returns:
+        pd.DataFrame: Combined DataFrame containing all teams' historical data
+    """
+    if fixtures_df.empty:
+        if self.logger:
+            self.logger.warning("No fixtures provided for team history scraping")
+        return pd.DataFrame()
+    
+    # Extract unique team names from fixtures
+    home_teams = fixtures_df['home_team'].unique().tolist()
+    away_teams = fixtures_df['away_team'].unique().tolist()
+    all_teams = list(set(home_teams + away_teams))
+    
+    if self.logger:
+        self.logger.start_job(f"FBref team history scraping for {len(all_teams)} teams")
+        self.logger.info(f"Will collect {lookback_matches} most recent matches for each team")
+    
+    all_team_data = []
+    
+    # Use ThreadPoolExecutor for concurrent scraping
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit scraping tasks for all teams
+        future_to_team = {
+            executor.submit(self.scrape_team_history, team, lookback_matches): team 
+            for team in all_teams
+        }
+        
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_team):
+            team = future_to_team[future]
+            try:
+                team_df = future.result()
+                if not team_df.empty:
+                    all_team_data.append(team_df)
+                    if self.logger:
+                        self.logger.info(f"Successfully scraped data for {team} ({len(team_df)} matches)")
+                else:
+                    if self.logger:
+                        self.logger.warning(f"No data scraped for team: {team}")
+            except Exception as e:
+                if self.logger:
+                    self.logger.error(f"Error processing team {team}: {str(e)}")
             
-        Returns:
-            pd.DataFrame: Combined DataFrame containing all teams' historical data
-        """
-        if fixtures_df.empty:
-            if self.logger:
-                self.logger.warning("No fixtures provided for team history scraping")
-            return pd.DataFrame()
-        
-        # Extract unique team names from fixtures
-        home_teams = fixtures_df['home_team'].unique().tolist()
-        away_teams = fixtures_df['away_team'].unique().tolist()
-        all_teams = list(set(home_teams + away_teams))
-        
+            # Add a random delay between requests to avoid rate limiting
+            time.sleep(random.uniform(2, 5))
+    
+    if not all_team_data:
         if self.logger:
-            self.logger.start_job(f"FBref team history scraping for {len(all_teams)} teams")
-            self.logger.info(f"Will collect {lookback_matches} most recent matches for each team")
-        
-        all_team_data = []
-        
-        # Use ThreadPoolExecutor for concurrent scraping
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit scraping tasks for all teams
-            future_to_team = {
-                executor.submit(self.scrape_team_history, team, lookback_matches): team 
-                for team in all_teams
-            }
-            
-            # Collect results as they complete
-            for future in concurrent.futures.as_completed(future_to_team):
-                team = future_to_team[future]
-                try:
-                    team_df = future.result()
-                    if not team_df.empty:
-                        all_team_data.append(team_df)
-                        if self.logger:
-                            self.logger.info(f"Successfully scraped data for {team} ({len(team_df)} matches)")
-                    else:
-                        if self.logger:
-                            self.logger.warning(f"No data scraped for team: {team}")
-                except Exception as e:
-                    if self.logger:
-                        self.logger.error(f"Error processing team {team}: {str(e)}")
-                
-                # Add a random delay between requests to avoid rate limiting
-                time.sleep(random.uniform(2, 5))
-        
-        if not all_team_data:
-            if self.logger:
-                self.logger.warning("No team history data was successfully scraped")
-                self.logger.end_job("FBref team history scraping", {"teams_scraped": 0})
-            return pd.DataFrame()
-        
-        # Combine all team data
-        combined_df = pd.concat(all_team_data, ignore_index=True)
-        
-        # Save combined raw data
-        raw_file = os.path.join(config.RAW_DIR, "raw_team_history_all.csv")
-        combined_df.to_csv(raw_file, index=False)
-        
-        if self.logger:
-            self.logger.info(f"Combined data for {len(all_team_data)} teams ({len(combined_df)} matches total)")
-            self.logger.info(f"Raw combined data saved to {raw_file}")
-            self.logger.end_job("FBref team history scraping", {
-                "teams_scraped": len(all_team_data),
-                "total_matches": len(combined_df)
-            })
-        
-        return combined_dffuture_to_team):
-                team = future_to_team[future]
-                try:
-                    team_df = future.result()
-                    if not team_df.empty:
-                        all_team_data.append(team_df)
-                        if self.logger:
-                            self.logger.info(f"Successfully scraped data for {team} ({len(team_df)} matches)")
-                    else:
-                        if self.logger:
-                            self.logger.warning(f"No data scraped for team: {team}")
-                except Exception as e:
-                    if self.logger:
-                        self.logger.error(f"Error processing team {team}: {str(e)}")
-                
-                # Add a random delay between requests to avoid rate limiting
-                time.sleep(random.uniform(2, 5))
-        
-        if not all_team_data:
-            if self.logger:
-                self.logger.warning("No team history data was successfully scraped")
-                self.logger.end_job("FBref team history scraping", {"teams_scraped": 0})
-            return pd.DataFrame()
-        
-        # Combine all team data
-        combined_df = pd.concat(all_team_data, ignore_index=True)
-        
-        # Save combined raw data
-        raw_file = os.path.join(config.RAW_DIR, "raw_team_history_all.csv")
-        combined_df.to_csv(raw_file, index=False)
-        
-        if self.logger:
-            self.logger.info(f"Combined data for {len(all_team_data)} teams ({len(combined_df)} matches total)")
-            self.logger.info(f"Raw combined data saved to {raw_file}")
-            self.logger.end_job("FBref team history scraping", {
-                "teams_scraped": len(all_team_data),
-                "total_matches": len(combined_df)
-            })
-        
-        return combined_dffuture_to_team):
-                team = future_to_team[future]
-                try:
-                    team_df = future.result()
-                    if not team_df.empty:
-                        all_team_data.append(team_df)
-                        if self.logger:
-                            self.logger.info(f"Successfully scraped data for {team} ({len(team_df)} matches)")
-                    else:
-                        if self.logger:
-                            self.logger.warning(f"No data scraped for team: {team}")
-                except Exception as e:
-                    if self.logger:
-                        self.logger.error(f"Error processing team {team}: {str(e)}")
-                
-                # Add a random delay between requests to avoid rate limiting
-                time.sleep(random.uniform(1, 3))
-        
-        if not all_team_data:
-            if self.logger:
-                self.logger.warning("No team history data was successfully scraped")
-                self.logger.end_job("FBref team history scraping", {"teams_scraped": 0})
-            return pd.DataFrame()
-        
-        # Combine all team data
-        combined_df = pd.concat(all_team_data, ignore_index=True)
-        
-        # Save combined raw data
-        raw_file = os.path.join(config.RAW_DIR, "raw_team_history_all.csv")
-        combined_df.to_csv(raw_file, index=False)
-        
-        if self.logger:
-            self.logger.info(f"Combined data for {len(all_team_data)} teams ({len(combined_df)} matches total)")
-            self.logger.info(f"Raw combined data saved to {raw_file}")
-            self.logger.end_job("FBref team history scraping", {
-                "teams_scraped": len(all_team_data),
-                "total_matches": len(combined_df)
-            })
-        
-        return combined_df
+            self.logger.warning("No team history data was successfully scraped")
+            self.logger.end_job("FBref team history scraping", {"teams_scraped": 0})
+        return pd.DataFrame()
+    
+    # Combine all team data
+    combined_df = pd.concat(all_team_data, ignore_index=True)
+    
+    # Save combined raw data
+    raw_file = os.path.join(config.RAW_DIR, "raw_team_history_all.csv")
+    combined_df.to_csv(raw_file, index=False)
+    
+    if self.logger:
+        self.logger.info(f"Combined data for {len(all_team_data)} teams ({len(combined_df)} matches total)")
+        self.logger.info(f"Raw combined data saved to {raw_file}")
+        self.logger.end_job("FBref team history scraping", {
+            "teams_scraped": len(all_team_data),
+            "total_matches": len(combined_df)
+        })
+    
+    return combined_df
