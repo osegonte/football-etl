@@ -1,0 +1,189 @@
+"""
+Main pipeline module for the football data ETL process.
+"""
+
+import os
+import argparse
+import json
+from datetime import datetime, timedelta
+import logging
+import pandas as pd
+
+from logger import PipelineLogger
+from scrapers.fixtures_scraper import FixturesScraper
+from scrapers.team_scraper import TeamHistoryScraper
+from processors.data_processor import FootballDataProcessor
+import config
+
+
+class FootballDataPipeline:
+    """Main pipeline class for orchestrating the football data ETL process."""
+    
+    def __init__(self, start_date=None, end_date=None, leagues=None):
+        """Initialize the football data pipeline.
+        
+        Args:
+            start_date: Start date for fixtures (default: today)
+            end_date: End date for fixtures (default: 2 weeks from today)
+            leagues: List of league dictionaries to filter by (default: from config)
+        """
+        # Set up logger
+        self.logger = PipelineLogger(
+            name="football_etl",
+            log_file=config.LOG_FILE,
+            level=getattr(logging, config.LOG_LEVEL)
+        )
+        
+        # Initialize dates
+        self.start_date = start_date or config.TODAY
+        self.end_date = end_date or config.FIXTURE_END_DATE
+        
+        # Initialize leagues
+        self.leagues = leagues or config.LEAGUES
+        
+        # Initialize pipeline components
+        self.fixtures_scraper = FixturesScraper(logger=self.logger)
+        self.team_scraper = TeamHistoryScraper(logger=self.logger)
+        self.data_processor = FootballDataProcessor(logger=self.logger)
+    
+    def run(self):
+        """Run the complete pipeline."""
+        self.logger.start_pipeline("Football Data ETL")
+        
+        try:
+            # Step 1: Scrape fixtures
+            self.logger.info(f"Step 1: Scraping fixtures from {self.start_date} to {self.end_date}")
+            fixtures_df = self.fixtures_scraper.scrape_fixtures(
+                start_date=self.start_date,
+                end_date=self.end_date,
+                leagues=self.leagues
+            )
+            
+            if fixtures_df.empty:
+                self.logger.error("No fixtures found. Aborting pipeline.")
+                return
+            
+            # Step 2: Process fixtures
+            self.logger.info("Step 2: Processing fixtures data")
+            processed_fixtures = self.data_processor.process_fixtures(fixtures_df)
+            
+            if processed_fixtures.empty:
+                self.logger.error("Processing fixtures failed. Aborting pipeline.")
+                return
+            
+            # Step 3: Scrape team history based on fixtures
+            self.logger.info("Step 3: Scraping team history data")
+            team_history_df = self.team_scraper.scrape_teams_from_fixtures(
+                processed_fixtures,
+                max_workers=4,
+                lookback_days=config.TEAM_HISTORY_DAYS
+            )
+            
+            # Step 4: Process team history
+            self.logger.info("Step 4: Processing team history data")
+            processed_team_history = self.data_processor.process_team_history(team_history_df)
+            
+            # Step 5: Join data
+            self.logger.info("Step 5: Joining fixtures and team history data")
+            combined_data = self.data_processor.join_data(processed_fixtures, processed_team_history)
+            
+            # Output results
+            pipeline_stats = {
+                "fixtures_count": len(processed_fixtures),
+                "teams_count": len(processed_team_history['team'].unique()) if not processed_team_history.empty else 0,
+                "joined_records": len(combined_data),
+                "leagues_covered": len(processed_fixtures['league'].unique()),
+                "data_completion": f"{combined_data.notna().mean().mean() * 100:.1f}%" if not combined_data.empty else "0%",
+                "start_date": self.start_date.strftime('%Y-%m-%d') if hasattr(self.start_date, 'strftime') else self.start_date,
+                "end_date": self.end_date.strftime('%Y-%m-%d') if hasattr(self.end_date, 'strftime') else self.end_date
+            }
+            
+            # Write pipeline stats to JSON file
+            stats_file = os.path.join(config.OUTPUT_DIR, "pipeline_stats.json")
+            with open(stats_file, 'w') as f:
+                json.dump(pipeline_stats, f, indent=2)
+            
+            self.logger.info(f"Pipeline completed successfully. Statistics saved to {stats_file}")
+            self.logger.end_pipeline("Football Data ETL", pipeline_stats)
+            
+            return combined_data
+            
+        except Exception as e:
+            self.logger.error(f"Pipeline error: {str(e)}", exc_info=True)
+            self.logger.end_pipeline("Football Data ETL", {"status": "failed", "error": str(e)})
+            return None
+
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="Football Data ETL Pipeline")
+    
+    parser.add_argument(
+        "--start-date",
+        type=str,
+        help="Start date for fixtures (YYYY-MM-DD, default: today)"
+    )
+    
+    parser.add_argument(
+        "--end-date",
+        type=str,
+        help="End date for fixtures (YYYY-MM-DD, default: 2 weeks from today)"
+    )
+    
+    parser.add_argument(
+        "--lookback-days",
+        type=int,
+        default=config.TEAM_HISTORY_DAYS,
+        help=f"Number of days to look back for team history (default: {config.TEAM_HISTORY_DAYS})"
+    )
+    
+    parser.add_argument(
+        "--leagues",
+        type=str,
+        help="Path to JSON file with custom league configurations"
+    )
+    
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=config.OUTPUT_DIR,
+        help=f"Output directory for pipeline results (default: {config.OUTPUT_DIR})"
+    )
+    
+    return parser.parse_args()
+
+
+def main():
+    """Main entry point for the pipeline."""
+    args = parse_args()
+    
+    # Process dates
+    start_date = datetime.strptime(args.start_date, "%Y-%m-%d").date() if args.start_date else config.TODAY
+    end_date = datetime.strptime(args.end_date, "%Y-%m-%d").date() if args.end_date else config.FIXTURE_END_DATE
+    
+    # Override config values if arguments provided
+    if args.lookback_days:
+        config.TEAM_HISTORY_DAYS = args.lookback_days
+    
+    if args.output_dir:
+        config.OUTPUT_DIR = args.output_dir
+        os.makedirs(config.OUTPUT_DIR, exist_ok=True)
+    
+    # Load custom leagues if provided
+    leagues = None
+    if args.leagues:
+        with open(args.leagues, 'r') as f:
+            leagues = json.load(f)
+    
+    # Run the pipeline
+    pipeline = FootballDataPipeline(
+        start_date=start_date,
+        end_date=end_date,
+        leagues=leagues
+    )
+    
+    pipeline.run()
+
+
+if __name__ == "__main__":
+    main()

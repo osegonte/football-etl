@@ -1,0 +1,42 @@
+[
+    {
+      "name": "Premier League",
+      "country": "England",
+      "id": "9"
+    },
+    {
+      "name": "La Liga",
+      "country": "Spain",
+      "id": "12"
+    },
+    {
+      "name": "Bundesliga",
+      "country": "Germany",
+      "id": "20"
+    },
+    {
+      "name": "Serie A",
+      "country": "Italy",
+      "id": "11"
+    },
+    {
+      "name": "Ligue 1",
+      "country": "France",
+      "id": "13"
+    },
+    {
+      "name": "Champions League",
+      "country": "Europe",
+      "id": "8"
+    },
+    {
+      "name": "Europa League",
+      "country": "Europe",
+      "id": "19"
+    },
+    {
+      "name": "Conference League",
+      "country": "Europe",
+      "id": "968"
+    }
+  ]
