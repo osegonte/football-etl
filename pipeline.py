@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import logging
 import pandas as pd
 
-from logger import PipelineLogger
+from utils.logger import PipelineLogger
 from scrapers.fixtures_scraper import FixturesScraper
 from scrapers.team_scraper import TeamHistoryScraper
 from processors.data_processor import FootballDataProcessor
@@ -46,8 +46,12 @@ class FootballDataPipeline:
         self.team_scraper = TeamHistoryScraper(logger=self.logger)
         self.data_processor = FootballDataProcessor(logger=self.logger)
     
-    def run(self):
-        """Run the complete pipeline."""
+    def run(self, lookback_matches=7):
+        """Run the complete pipeline.
+        
+        Args:
+            lookback_matches: Number of most recent matches to collect per team
+        """
         self.logger.start_pipeline("Football Data ETL")
         
         try:
@@ -72,11 +76,11 @@ class FootballDataPipeline:
                 return
             
             # Step 3: Scrape team history based on fixtures
-            self.logger.info("Step 3: Scraping team history data")
+            self.logger.info(f"Step 3: Scraping team history data (most recent {lookback_matches} matches)")
             team_history_df = self.team_scraper.scrape_teams_from_fixtures(
                 processed_fixtures,
                 max_workers=4,
-                lookback_days=config.TEAM_HISTORY_DAYS
+                lookback_matches=lookback_matches
             )
             
             # Step 4: Process team history
@@ -95,7 +99,8 @@ class FootballDataPipeline:
                 "leagues_covered": len(processed_fixtures['league'].unique()),
                 "data_completion": f"{combined_data.notna().mean().mean() * 100:.1f}%" if not combined_data.empty else "0%",
                 "start_date": self.start_date.strftime('%Y-%m-%d') if hasattr(self.start_date, 'strftime') else self.start_date,
-                "end_date": self.end_date.strftime('%Y-%m-%d') if hasattr(self.end_date, 'strftime') else self.end_date
+                "end_date": self.end_date.strftime('%Y-%m-%d') if hasattr(self.end_date, 'strftime') else self.end_date,
+                "lookback_matches": lookback_matches
             }
             
             # Write pipeline stats to JSON file
@@ -131,10 +136,10 @@ def parse_args():
     )
     
     parser.add_argument(
-        "--lookback-days",
+        "--lookback-matches",
         type=int,
-        default=config.TEAM_HISTORY_DAYS,
-        help=f"Number of days to look back for team history (default: {config.TEAM_HISTORY_DAYS})"
+        default=7,
+        help="Number of most recent matches to look back for team history (default: 7)"
     )
     
     parser.add_argument(
@@ -162,8 +167,9 @@ def main():
     end_date = datetime.strptime(args.end_date, "%Y-%m-%d").date() if args.end_date else config.FIXTURE_END_DATE
     
     # Override config values if arguments provided
-    if args.lookback_days:
-        config.TEAM_HISTORY_DAYS = args.lookback_days
+    lookback_matches = 7  # Default to 7 recent matches
+    if args.lookback_matches:
+        lookback_matches = args.lookback_matches
     
     if args.output_dir:
         config.OUTPUT_DIR = args.output_dir
@@ -182,7 +188,7 @@ def main():
         leagues=leagues
     )
     
-    pipeline.run()
+    pipeline.run(lookback_matches=lookback_matches)
 
 
 if __name__ == "__main__":
