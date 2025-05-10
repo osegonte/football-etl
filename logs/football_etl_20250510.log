@@ -1,0 +1,25 @@
+2025-05-10 18:50:10 - football_etl - INFO - ==================== STARTING Football Data ETL PIPELINE ====================
+2025-05-10 18:50:10 - football_etl - INFO - Step 1: Scraping fixtures from 2025-05-10 to 2025-05-24
+2025-05-10 18:50:10 - football_etl - INFO - ---------- Starting job: SofaScore fixtures scraping (2025-05-10 to 2025-05-24) ----------
+2025-05-10 18:50:10 - football_etl - INFO - Scraping fixtures for 6 leagues
+2025-05-10 18:51:07 - football_etl - INFO - Scraped 1277 fixtures
+2025-05-10 18:51:07 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_fixtures_20250510_20250524.csv
+2025-05-10 18:51:07 - football_etl - INFO - Job statistics: {'fixtures_count': 1277, 'leagues_found': 51, 'start_date': '2025-05-10', 'end_date': '2025-05-24'}
+2025-05-10 18:51:07 - football_etl - INFO - ---------- Completed job: SofaScore fixtures scraping ----------
+2025-05-10 18:51:07 - football_etl - INFO - Step 2: Processing fixtures data
+2025-05-10 18:51:07 - football_etl - INFO - ---------- Starting job: Processing fixtures data ----------
+2025-05-10 18:51:07 - football_etl - WARNING - Fixtures data validation failed: {'valid': False, 'missing_columns': [], 'missing_values': {}, 'record_count': 1277, 'duplicate_ids': 628}
+2025-05-10 18:51:07 - football_etl - WARNING - Dropping 628 duplicate fixtures
+2025-05-10 18:51:07 - football_etl - INFO - Processed 649 fixtures
+2025-05-10 18:51:07 - football_etl - INFO - Processed data saved to /Users/osegonte/football-etl/data/processed/processed_fixtures.csv
+2025-05-10 18:51:07 - football_etl - INFO - Job statistics: {'fixtures_count': 649, 'leagues_count': 51}
+2025-05-10 18:51:07 - football_etl - INFO - ---------- Completed job: Processing fixtures data ----------
+2025-05-10 18:51:07 - football_etl - INFO - Step 3: Scraping team history data (most recent 7 matches)
+2025-05-10 18:51:07 - football_etl - ERROR - Pipeline error: 'TeamHistoryScraper' object has no attribute 'scrape_teams_from_fixtures'
+Traceback (most recent call last):
+  File "/Users/osegonte/football-etl/pipeline.py", line 80, in run
+    team_history_df = self.team_scraper.scrape_teams_from_fixtures(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'TeamHistoryScraper' object has no attribute 'scrape_teams_from_fixtures'
+2025-05-10 18:51:07 - football_etl - INFO - Pipeline statistics: {'status': 'failed', 'error': "'TeamHistoryScraper' object has no attribute 'scrape_teams_from_fixtures'"}
+2025-05-10 18:51:07 - football_etl - INFO - ==================== COMPLETED Football Data ETL PIPELINE ====================
