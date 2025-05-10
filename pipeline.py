@@ -46,11 +46,14 @@ class FootballDataPipeline:
         self.team_scraper = TeamHistoryScraper(logger=self.logger)
         self.data_processor = FootballDataProcessor(logger=self.logger)
     
-    def run(self, lookback_matches=7):
+    def run(self, lookback_matches=7, max_workers=4, max_teams=None, priority_only=False):
         """Run the complete pipeline.
         
         Args:
             lookback_matches: Number of most recent matches to collect per team
+            max_workers: Maximum number of concurrent workers for team scraping
+            max_teams: Maximum number of teams to process (None for all)
+            priority_only: Only process teams from priority leagues
         """
         self.logger.start_pipeline("Football Data ETL")
         
@@ -79,9 +82,14 @@ class FootballDataPipeline:
             self.logger.info(f"Step 3: Scraping team history data (most recent {lookback_matches} matches)")
             team_history_df = self.team_scraper.scrape_teams_from_fixtures(
                 processed_fixtures,
-                max_workers=4,
-                lookback_matches=lookback_matches
+                max_workers=max_workers,
+                lookback_matches=lookback_matches,
+                max_teams=max_teams,
+                priority_only=priority_only
             )
+            
+            if team_history_df.empty:
+                self.logger.warning("No team history data found. Proceeding with fixtures only.")
             
             # Step 4: Process team history
             self.logger.info("Step 4: Processing team history data")
@@ -100,7 +108,8 @@ class FootballDataPipeline:
                 "data_completion": f"{combined_data.notna().mean().mean() * 100:.1f}%" if not combined_data.empty else "0%",
                 "start_date": self.start_date.strftime('%Y-%m-%d') if hasattr(self.start_date, 'strftime') else self.start_date,
                 "end_date": self.end_date.strftime('%Y-%m-%d') if hasattr(self.end_date, 'strftime') else self.end_date,
-                "lookback_matches": lookback_matches
+                "lookback_matches": lookback_matches,
+                "success_rate": f"{(len(team_history_df) / (processed_fixtures['home_team'].nunique() + processed_fixtures['away_team'].nunique()) * 100):.1f}%" if not team_history_df.empty else "0%"
             }
             
             # Write pipeline stats to JSON file
@@ -111,10 +120,23 @@ class FootballDataPipeline:
             self.logger.info(f"Pipeline completed successfully. Statistics saved to {stats_file}")
             self.logger.end_pipeline("Football Data ETL", pipeline_stats)
             
+            # Send notification if webhook configured
+            webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
+            if webhook_url and hasattr(self.team_scraper, 'send_notification'):
+                success_message = f"✅ Football ETL pipeline completed! Processed {len(processed_fixtures)} fixtures and {len(processed_team_history['team'].unique()) if not processed_team_history.empty else 0} teams."
+                self.team_scraper.send_notification(success_message, webhook_url)
+            
             return combined_data
             
         except Exception as e:
             self.logger.error(f"Pipeline error: {str(e)}", exc_info=True)
+            
+            # Send error notification if webhook configured
+            webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
+            if webhook_url and hasattr(self.team_scraper, 'send_notification'):
+                error_message = f"❌ Football ETL pipeline failed: {str(e)}"
+                self.team_scraper.send_notification(error_message, webhook_url)
+            
             self.logger.end_pipeline("Football Data ETL", {"status": "failed", "error": str(e)})
             return None
 
@@ -155,6 +177,25 @@ def parse_args():
         help=f"Output directory for pipeline results (default: {config.OUTPUT_DIR})"
     )
     
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=4,
+        help="Maximum number of concurrent workers for team scraping (default: 4)"
+    )
+    
+    parser.add_argument(
+        "--max-teams",
+        type=int,
+        help="Maximum number of teams to process (default: all teams)"
+    )
+    
+    parser.add_argument(
+        "--priority-only",
+        action="store_true",
+        help="Only process teams from priority leagues (Premier League, La Liga, etc.)"
+    )
+    
     return parser.parse_args()
 
 
@@ -167,9 +208,10 @@ def main():
     end_date = datetime.strptime(args.end_date, "%Y-%m-%d").date() if args.end_date else config.FIXTURE_END_DATE
     
     # Override config values if arguments provided
-    lookback_matches = 7  # Default to 7 recent matches
-    if args.lookback_matches:
-        lookback_matches = args.lookback_matches
+    lookback_matches = args.lookback_matches
+    max_workers = args.max_workers
+    max_teams = args.max_teams
+    priority_only = args.priority_only
     
     if args.output_dir:
         config.OUTPUT_DIR = args.output_dir
@@ -188,7 +230,12 @@ def main():
         leagues=leagues
     )
     
-    pipeline.run(lookback_matches=lookback_matches)
+    pipeline.run(
+        lookback_matches=lookback_matches,
+        max_workers=max_workers,
+        max_teams=max_teams,
+        priority_only=priority_only
+    )
 
 
 if __name__ == "__main__":

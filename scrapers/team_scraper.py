@@ -1,22 +1,26 @@
 """
-FBref team history scraper module with enhanced fallback and error handling.
+FBref team history scraper module with enhanced caching, fallbacks, and parallel processing.
 
 This module is responsible for scraping historical team data from FBref,
-with improvements to handle multiple seasons and parse HTML more robustly.
+with improvements to handle multiple seasons, parallel scraping, and robust caching.
 """
 
 import os
 import time
 import re
 import random
+import json
 import pandas as pd
-import logging
-from datetime import datetime, timedelta
+import numpy as np
 import concurrent.futures
+from datetime import datetime, timedelta
+from pathlib import Path
+from tqdm.auto import tqdm
 from typing import Dict, List, Optional, Union, Any, Tuple
 import requests
 from requests.exceptions import RequestException, Timeout, HTTPError
 from bs4 import BeautifulSoup
+
 from utils.logger import PipelineLogger
 from utils.http_utils import get_soup, make_request
 from utils.data_utils import normalize_team_name, normalize_date, clean_number, generate_match_id
@@ -24,13 +28,25 @@ import config
 
 
 class TeamHistoryScraper:
-    """Scraper for team historical performance data from FBref."""
+    """Scraper for team historical performance data from FBref with enhanced capabilities."""
     
-    def __init__(self, logger: PipelineLogger = None):
+    # Add this as a class constant
+    PRIORITY_LEAGUES = {
+        "Premier League", 
+        "La Liga", 
+        "Serie A", 
+        "Bundesliga", 
+        "Ligue 1",
+        "Champions League",
+        "Europa League"
+    }
+    
+    def __init__(self, logger: PipelineLogger = None, cache_dir=None):
         """Initialize the team history scraper.
         
         Args:
             logger: Logger instance
+            cache_dir: Directory for caching team data
         """
         self.logger = logger
         
@@ -40,8 +56,98 @@ class TeamHistoryScraper:
         # Cache for team URLs to avoid redundant searches
         self.team_urls = {}
         
+        # Set up caching
+        self.setup_cache(cache_dir)
+        
+        # Track failed teams
+        self.failed_teams = set()
+        
         # Create output directory if it doesn't exist
         os.makedirs(config.RAW_DIR, exist_ok=True)
+    
+    def setup_cache(self, cache_dir=None):
+        """Set up the caching system.
+        
+        Args:
+            cache_dir: Directory for caching team data (default: data/cache/team_history)
+        """
+        if cache_dir:
+            self.cache_dir = Path(cache_dir)
+        else:
+            self.cache_dir = Path(config.DATA_DIR) / "cache" / "team_history"
+        
+        self.cache_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Track teams that failed to be scraped
+        self.failed_teams = set()
+    
+    def _get_cache_path(self, team_name):
+        """Get the cache file path for a team."""
+        safe_name = normalize_team_name(team_name).lower().replace(' ', '_')
+        return self.cache_dir / f"{safe_name}.json"
+    
+    def _load_from_cache(self, team_name):
+        """Load team history from cache if available."""
+        cache_path = self._get_cache_path(team_name)
+        
+        if cache_path.exists():
+            try:
+                if self.logger:
+                    self.logger.info(f"Loading {team_name} data from cache: {cache_path}")
+                
+                # Load cached JSON
+                cached_data = json.loads(cache_path.read_text())
+                
+                # Check if it's valid
+                if cached_data and isinstance(cached_data, list) and len(cached_data) > 0:
+                    # Convert to DataFrame
+                    df = pd.DataFrame(cached_data)
+                    
+                    # Check cache freshness (within 7 days)
+                    cache_time = cache_path.stat().st_mtime
+                    cache_age = datetime.now().timestamp() - cache_time
+                    
+                    if cache_age < 7 * 24 * 3600:  # 7 days in seconds
+                        return df
+                    else:
+                        if self.logger:
+                            self.logger.info(f"Cache for {team_name} is older than 7 days, will refresh")
+                        return None
+                
+                if self.logger:
+                    self.logger.warning(f"Invalid cache data for {team_name}")
+                return None
+                
+            except Exception as e:
+                if self.logger:
+                    self.logger.warning(f"Error loading cache for {team_name}: {str(e)}")
+                return None
+        
+        return None
+    
+    def _save_to_cache(self, team_name, df):
+        """Save team history to cache."""
+        if df.empty:
+            return False
+        
+        cache_path = self._get_cache_path(team_name)
+        
+        try:
+            # Convert DataFrame to list of dicts for JSON
+            data = df.to_dict(orient='records')
+            
+            # Save to cache
+            cache_path.write_text(json.dumps(data, default=str))
+            
+            if self.logger:
+                self.logger.info(f"Saved {team_name} data to cache: {cache_path}")
+            
+            return True
+            
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Error saving cache for {team_name}: {str(e)}")
+            return False
     
     def _get_seasons(self, num_seasons: int = 3) -> List[str]:
         """Get a list of seasons to try, starting with the current season.
@@ -76,79 +182,130 @@ class TeamHistoryScraper:
         return self.seasons[0] if self.seasons else "2024-2025"
     
     def _find_team_url(self, team_name: str) -> Optional[str]:
-        """Find the FBref URL for a team by name.
-        
+        """Find the FBref URL for a team by name with enhanced error handling.
+    
         Args:
             team_name: Team name to search for
-            
+        
         Returns:
             str or None: FBref team URL if found
         """
         if team_name in self.team_urls:
+            if self.logger:
+                self.logger.info(f"Using cached URL for {team_name}: {self.team_urls[team_name]}")
             return self.team_urls[team_name]
-        
+    
         normalized_name = normalize_team_name(team_name)
         search_name = normalized_name.replace(' ', '+')
-        
+    
+        if self.logger:
+            self.logger.info(f"Searching for team: {team_name} (normalized: {normalized_name})")
+    
+        # Pre-defined URLs for common teams to avoid searching
+        common_teams = {
+            "Manchester United": "https://fbref.com/en/squads/19538871/Manchester-United-Stats",
+            "Arsenal": "https://fbref.com/en/squads/18bb7c10/Arsenal-Stats",
+            "Liverpool": "https://fbref.com/en/squads/822bd0ba/Liverpool-Stats",
+            "Manchester City": "https://fbref.com/en/squads/b8fd03ef/Manchester-City-Stats",
+            "Chelsea": "https://fbref.com/en/squads/cff3d9bb/Chelsea-Stats",
+            "Barcelona": "https://fbref.com/en/squads/206d90db/Barcelona-Stats",
+            "Real Madrid": "https://fbref.com/en/squads/53a2f082/Real-Madrid-Stats",
+            "Bayern Munich": "https://fbref.com/en/squads/054efa67/Bayern-Munich-Stats",
+            "Paris Saint-Germain": "https://fbref.com/en/squads/e2d8892c/Paris-Saint-Germain-Stats",
+            "Juventus": "https://fbref.com/en/squads/e0652b02/Juventus-Stats"
+       }
+    
+        # Check if this is a common team with a known URL
+        for common_name, url in common_teams.items():
+            if normalized_name.lower() == normalize_team_name(common_name).lower():
+                if self.logger:
+                    self.logger.info(f"Found predefined URL for {team_name}: {url}")
+                self.team_urls[team_name] = url
+                return url
+    
         try:
             # Search for the team on FBref
             search_url = f"https://fbref.com/en/search/search.fcgi?search={search_name}"
-            
+        
             if self.logger:
-                self.logger.info(f"Searching for team: {team_name}")
-            
-            soup = get_soup(search_url)
-            
+                self.logger.info(f"Making request to: {search_url}")
+        
+            # Use simpler approach with direct requests instead of get_soup
+            import requests
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+           }
+        
+            response = requests.get(search_url, headers=headers, timeout=30)
+        
+            if response.status_code != 200:
+                if self.logger:
+                    self.logger.warning(f"Search request failed with status code: {response.status_code}")
+                    self.logger.warning(f"Response content: {response.text[:500]}...")
+                return None
+        
+            if self.logger:
+                self.logger.info(f"Search request completed successfully")
+        
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(response.content, "html.parser")
+        
             # Look for team search results
             search_results = soup.select('.search-item-name')
-            
+        
+            if self.logger:
+                self.logger.info(f"Found {len(search_results)} search results")
+        
             for item in search_results:
                 link = item.find('a')
                 if link and '/squads/' in link['href']:
                     result_name = link.text.strip()
-                    
+                
                     # Check if the found name matches the search name
                     if (normalized_name.lower() in result_name.lower() or 
                         result_name.lower() in normalized_name.lower()):
                         team_url = f"https://fbref.com{link['href']}"
-                        
+                    
                         # Store in cache
                         self.team_urls[team_name] = team_url
-                        
-                        # Extract the team ID from the URL
-                        team_id = link['href'].split('/squads/')[1].split('/')[0]
-                        
+                    
                         if self.logger:
-                            self.logger.info(f"Found team URL for {team_name}: {team_url} (ID: {team_id})")
-                        
+                            self.logger.info(f"Found team URL for {team_name}: {team_url}")
+                    
                         return team_url
-            
+        
             # If no direct match, try to find the closest match
             for item in search_results:
                 link = item.find('a')
                 if link and '/squads/' in link['href']:
                     result_name = link.text.strip()
-                    
-                    # Take the first squad result as a fallback
+                
+                     # Take the first squad result as a fallback
                     team_url = f"https://fbref.com{link['href']}"
-                    
-                    # Store in cache
+                
+                     # Store in cache
                     self.team_urls[team_name] = team_url
-                    
+                
                     if self.logger:
                         self.logger.info(f"Found fallback team URL for {team_name}: {team_url}")
-                    
+                
                     return team_url
-            
+        
             if self.logger:
                 self.logger.warning(f"No team URL found for {team_name}")
-            
+        
             return None
-            
+        
         except Exception as e:
+            import traceback
             if self.logger:
                 self.logger.error(f"Error finding team URL for {team_name}: {str(e)}")
-            
+                self.logger.error(traceback.format_exc())
+        
             return None
     
     def _get_team_id_from_url(self, team_url: str) -> Optional[str]:
@@ -281,7 +438,7 @@ class TeamHistoryScraper:
         for url in url_patterns:
             try:
                 if self.logger:
-                    self.logger.info(f"Trying {season} fixtures URL: {url}")
+                    self.logger.info(f"Fetching fixtures from: {url}")
                 
                 html = make_request(url).text
                 df, match_urls = self._parse_matchlog_table(html, team_name)
@@ -426,31 +583,17 @@ class TeamHistoryScraper:
                 self.logger.error(f"Error scraping match details from {match_url}: {str(e)}")
             return {}
     
-    def scrape_team_history(
-        self, 
-        team_name: str, 
-        lookback_matches: int = 7
-    ) -> pd.DataFrame:
-        """Scrape historical performance data for a team's most recent matches.
+    def _detailed_scrape_team_history(self, team_name: str, team_url: str, lookback_matches: int = 7) -> pd.DataFrame:
+        """Detailed team history scrape with match statistics.
         
         Args:
-            team_name: Team name to scrape history for
-            lookback_matches: Number of most recent matches to retrieve (default: 7)
+            team_name: Team name to scrape
+            team_url: Team URL
+            lookback_matches: Number of most recent matches to retrieve
             
         Returns:
-            pd.DataFrame: DataFrame containing team historical data
+            pd.DataFrame: Team history DataFrame
         """
-        if self.logger:
-            self.logger.info(f"Scraping {lookback_matches} most recent matches for team: {team_name}")
-        
-        # Find team URL
-        team_url = self._find_team_url(team_name)
-        
-        if not team_url:
-            if self.logger:
-                self.logger.warning(f"Cannot scrape history for {team_name}: team URL not found")
-            return pd.DataFrame()
-        
         # Try each season until we find matches
         for season in self.seasons:
             try:
@@ -606,48 +749,231 @@ class TeamHistoryScraper:
         
         return pd.DataFrame()
     
+    def _basic_scrape_team_history(self, team_name, team_url, lookback_matches=7):
+        """Basic team history scrape without detailed match stats."""
+        if self.logger:
+            self.logger.info(f"Performing basic scrape for {team_name}")
+        
+        # Try each season until we find matches
+        for season in self.seasons:
+            try:
+                fixtures_df, _ = self._try_get_fixtures_for_season(team_url, team_name, season)
+                
+                if fixtures_df.empty:
+                    continue
+                
+                # Limit to most recent N matches and extract basic data
+                matches_data = []
+                for idx, row in fixtures_df.head(lookback_matches).iterrows():
+                    match_data = {
+                        'team': normalize_team_name(team_name),
+                        'season': season
+                    }
+                    
+                    # Extract basic info using common column patterns
+                    for col_type, patterns in {
+                        'date': ['Date'],
+                        'competition': ['Comp', 'Competition'],
+                        'venue': ['Venue'],
+                        'opponent': ['Opponent'],
+                        'result': ['Result'],
+                        'goals_for': ['GF', 'Goals For'],
+                        'goals_against': ['GA', 'Goals Against']
+                    }.items():
+                        col = next((c for c in row.index if any(p in c for p in patterns)), None)
+                        if col:
+                            if col_type == 'date':
+                                match_data[col_type] = normalize_date(row[col])
+                            else:
+                                match_data[col_type] = row[col]
+                   # Add home/away flag and team names
+                    if 'venue' in match_data and 'opponent' in match_data:
+                        is_home = match_data['venue'] == 'Home'
+                        match_data['is_home'] = 1 if is_home else 0
+                        match_data['home_team'] = team_name if is_home else match_data['opponent']
+                        match_data['away_team'] = match_data['opponent'] if is_home else team_name
+                        
+                        # Generate match ID
+                        if 'date' in match_data:
+                            match_data['match_id'] = generate_match_id(
+                                match_data['date'],
+                                match_data['home_team'],
+                                match_data['away_team']
+                            )
+                    
+                    matches_data.append(match_data)
+                
+                if matches_data:
+                    return pd.DataFrame(matches_data)
+                    
+            except Exception as e:
+                if self.logger:
+                    self.logger.error(f"Basic scrape failed for {team_name} in season {season}: {str(e)}")
+        
+        return pd.DataFrame()
+
+    def _retry_with_basic_scrape(self, team_name, lookback_matches):
+        """Retry a failed team with basic scraping approach."""
+        team_url = self._find_team_url(team_name)
+        if not team_url:
+            return pd.DataFrame()
+        
+        # Use only basic scrape for retry
+        df = self._basic_scrape_team_history(team_name, team_url, lookback_matches)
+        
+        if not df.empty:
+            self._save_to_cache(team_name, df)
+        
+        return df
+    
+    def scrape_team_history(self, team_name, lookback_matches=7):
+        """Scrape team history with caching and fallback options."""
+        if self.logger:
+            self.logger.info(f"Scraping {lookback_matches} most recent matches for team: {team_name}")
+        
+        # Check if we have cached data
+        cached_df = self._load_from_cache(team_name)
+        if cached_df is not None and not cached_df.empty:
+            if self.logger:
+                self.logger.info(f"Using cached data for {team_name} ({len(cached_df)} matches)")
+            return cached_df
+        
+        # Find team URL
+        team_url = self._find_team_url(team_name)
+        
+        if not team_url:
+            if self.logger:
+                self.logger.warning(f"Cannot scrape history for {team_name}: team URL not found")
+            self.failed_teams.add(team_name)
+            return pd.DataFrame()
+        
+        # Attempt detailed scraping first
+        try:
+            df = self._detailed_scrape_team_history(team_name, team_url, lookback_matches)
+            
+            if not df.empty:
+                # Cache the successful result
+                self._save_to_cache(team_name, df)
+                return df
+                
+        except Exception as e:
+            if self.logger:
+                self.logger.warning(f"Detailed scrape failed for {team_name}: {str(e)}. Trying basic scrape.")
+        
+        # Fallback to basic scrape
+        try:
+            df = self._basic_scrape_team_history(team_name, team_url, lookback_matches)
+            
+            if not df.empty:
+                # Cache the basic result
+                self._save_to_cache(team_name, df)
+                return df
+                
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"All scraping methods failed for {team_name}: {str(e)}")
+            self.failed_teams.add(team_name)
+        
+        return pd.DataFrame()
+    
+    def filter_priority_teams(self, fixtures_df):
+        """Filter fixtures to only include teams from priority leagues."""
+        # Get teams from priority leagues
+        priority_fixtures = fixtures_df[fixtures_df['league'].isin(self.PRIORITY_LEAGUES)]
+        
+        # Extract unique teams
+        home_teams = priority_fixtures['home_team'].unique().tolist()
+        away_teams = priority_fixtures['away_team'].unique().tolist()
+        
+        return list(set(home_teams + away_teams))
+    
+    def send_notification(self, message, webhook_url=None):
+        """Send a notification about scraping progress/completion."""
+        if not webhook_url:
+            # Try to get from environment
+            webhook_url = os.environ.get('SLACK_WEBHOOK_URL') or os.environ.get('DISCORD_WEBHOOK_URL')
+        
+        if not webhook_url:
+            if self.logger:
+                self.logger.info(f"Notification: {message}")
+            return False
+        
+        try:
+            payload = {"text": message}
+            response = requests.post(webhook_url, json=payload)
+            return response.status_code == 200
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Failed to send notification: {str(e)}")
+            return False
+    
     def scrape_teams_from_fixtures(
         self,
         fixtures_df: pd.DataFrame,
         max_workers: int = 4,
-        lookback_matches: int = 7
+        lookback_matches: int = 7,
+        max_teams: int = None,
+        priority_only: bool = False,
+        retry_failed: bool = True
     ) -> pd.DataFrame:
-        """Scrape historical data for all teams in a fixtures DataFrame.
+        """Scrape historical data for teams with enhanced controls and tracking.
         
         Args:
-            fixtures_df: DataFrame containing fixtures with home_team and away_team columns
-            max_workers: Maximum number of concurrent scraping workers
-            lookback_matches: Number of most recent matches to collect per team
+            fixtures_df: DataFrame with fixtures
+            max_workers: Maximum concurrent workers
+            lookback_matches: Number of matches to retrieve per team
+            max_teams: Maximum number of teams to process (None for all)
+            priority_only: Only process teams from priority leagues
+            retry_failed: Retry teams that failed during first pass
             
         Returns:
-            pd.DataFrame: Combined DataFrame containing all teams' historical data
+            pd.DataFrame: Combined DataFrame with team history
         """
         if fixtures_df.empty:
             if self.logger:
                 self.logger.warning("No fixtures provided for team history scraping")
             return pd.DataFrame()
         
-        # Extract unique team names from fixtures
+        # Extract teams from fixtures
         home_teams = fixtures_df['home_team'].unique().tolist()
         away_teams = fixtures_df['away_team'].unique().tolist()
         all_teams = list(set(home_teams + away_teams))
         
+        # Filter to priority leagues if requested
+        if priority_only:
+            priority_teams = self.filter_priority_teams(fixtures_df)
+            team_list = [t for t in all_teams if t in priority_teams]
+            if self.logger:
+                self.logger.info(f"Filtered to {len(team_list)} priority league teams out of {len(all_teams)} total")
+        else:
+            team_list = all_teams
+        
+        # Limit number of teams if specified
+        if max_teams and max_teams < len(team_list):
+            team_list = team_list[:max_teams]
+            if self.logger:
+                self.logger.info(f"Limited to {max_teams} teams")
+        
         if self.logger:
-            self.logger.start_job(f"FBref team history scraping for {len(all_teams)} teams")
+            self.logger.start_job(f"Team history scraping for {len(team_list)} teams")
             self.logger.info(f"Will collect {lookback_matches} most recent matches for each team")
         
+        # Initialize progress tracking
         all_team_data = []
+        self.failed_teams = set()
         
-        # Use ThreadPoolExecutor for concurrent scraping
+        # Use ThreadPoolExecutor with progress bar
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit scraping tasks for all teams
+            # Submit scraping tasks
             future_to_team = {
                 executor.submit(self.scrape_team_history, team, lookback_matches): team 
-                for team in all_teams
+                for team in team_list
             }
             
-            # Collect results as they complete
-            for future in concurrent.futures.as_completed(future_to_team):
+            # Show progress bar
+            for future in tqdm(concurrent.futures.as_completed(future_to_team), 
+                              total=len(future_to_team), 
+                              desc="Scraping Teams"):
                 team = future_to_team[future]
                 try:
                     team_df = future.result()
@@ -658,32 +984,77 @@ class TeamHistoryScraper:
                     else:
                         if self.logger:
                             self.logger.warning(f"No data scraped for team: {team}")
+                        self.failed_teams.add(team)
                 except Exception as e:
                     if self.logger:
                         self.logger.error(f"Error processing team {team}: {str(e)}")
+                    self.failed_teams.add(team)
                 
-                # Add a random delay between requests to avoid rate limiting
-                time.sleep(random.uniform(2, 5))
+                # Random delay between requests
+                time.sleep(random.uniform(1, 3))
         
+        # Retry failed teams if requested
+        if retry_failed and self.failed_teams:
+            if self.logger:
+                self.logger.info(f"Retrying {len(self.failed_teams)} failed teams with basic scraping")
+            
+            retry_teams = list(self.failed_teams)
+            self.failed_teams = set()
+            
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, max_workers // 2)) as retry_executor:
+                retry_futures = {
+                    retry_executor.submit(self._retry_with_basic_scrape, team, lookback_matches): team 
+                    for team in retry_teams
+                }
+                
+                for future in tqdm(concurrent.futures.as_completed(retry_futures), 
+                                  total=len(retry_futures), 
+                                  desc="Retrying Failed Teams"):
+                    team = retry_futures[future]
+                    try:
+                        team_df = future.result()
+                        if not team_df.empty:
+                            all_team_data.append(team_df)
+                            if self.logger:
+                                self.logger.info(f"Retry success for {team} ({len(team_df)} matches)")
+                        else:
+                            if self.logger:
+                                self.logger.warning(f"Retry failed for team: {team}")
+                            self.failed_teams.add(team)
+                    except Exception as e:
+                        if self.logger:
+                            self.logger.error(f"Retry error for team {team}: {str(e)}")
+                        self.failed_teams.add(team)
+                    
+                    time.sleep(random.uniform(2, 4))
+        
+        # Process results
         if not all_team_data:
             if self.logger:
                 self.logger.warning("No team history data was successfully scraped")
-                self.logger.end_job("FBref team history scraping", {"teams_scraped": 0})
+                self.logger.end_job("Team history scraping", {"teams_scraped": 0})
             return pd.DataFrame()
         
         # Combine all team data
         combined_df = pd.concat(all_team_data, ignore_index=True)
         
-        # Save combined raw data
+        # Save raw combined data
         raw_file = os.path.join(config.RAW_DIR, "raw_team_history_all.csv")
         combined_df.to_csv(raw_file, index=False)
         
         if self.logger:
+            success_rate = 100 * (len(team_list) - len(self.failed_teams)) / len(team_list)
             self.logger.info(f"Combined data for {len(all_team_data)} teams ({len(combined_df)} matches total)")
+            self.logger.info(f"Success rate: {success_rate:.1f}% ({len(team_list) - len(self.failed_teams)}/{len(team_list)})")
             self.logger.info(f"Raw combined data saved to {raw_file}")
-            self.logger.end_job("FBref team history scraping", {
+            
+            if self.failed_teams:
+                self.logger.warning(f"Failed to scrape {len(self.failed_teams)} teams: {', '.join(sorted(list(self.failed_teams)[:10]))}...")
+            
+            self.logger.end_job("Team history scraping", {
                 "teams_scraped": len(all_team_data),
-                "total_matches": len(combined_df)
+                "total_matches": len(combined_df),
+                "success_rate": f"{success_rate:.1f}%"
             })
         
         return combined_df

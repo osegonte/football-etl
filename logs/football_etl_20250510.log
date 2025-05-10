@@ -112,3 +112,84 @@ AttributeError: 'TeamHistoryScraper' object has no attribute 'scrape_teams_from_
 2025-05-10 19:32:14 - football_etl - INFO - Searching for team: Young Lions
 2025-05-10 19:32:14 - football_etl - INFO - Searching for team: Independiente Del Valle
 2025-05-10 19:32:14 - football_etl - INFO - Searching for team: Sumqayıt FK
+2025-05-10 20:04:03 - football_etl - INFO - Found team URL for Independiente Del Valle: https://fbref.com/en/squads/990519b8/ (ID: 990519b8)
+2025-05-10 20:04:03 - football_etl - INFO - Trying 2024-2025 fixtures URL: https://fbref.com/en/squads/990519b8/2024-2025/matchlogs/all_comps/schedule/Independiente-Del-Valle-Scores-and-Fixtures-All-Competitions
+2025-05-10 20:04:03 - football_etl - INFO - Found team URL for FC Kyzylzhar: https://fbref.com/en/squads/8abecad0/ (ID: 8abecad0)
+2025-05-10 20:04:03 - football_etl - INFO - Trying 2024-2025 fixtures URL: https://fbref.com/en/squads/8abecad0/2024-2025/matchlogs/all_comps/schedule/FC-Kyzylzhar-Scores-and-Fixtures-All-Competitions
+2025-05-10 20:04:03 - football_etl - WARNING - No team URL found for Young Lions
+2025-05-10 20:04:03 - football_etl - WARNING - Cannot scrape history for Young Lions: team URL not found
+2025-05-10 20:04:03 - football_etl - INFO - Scraping 7 most recent matches for team: 1. FC Nürnberg
+2025-05-10 20:04:03 - football_etl - WARNING - No data scraped for team: Young Lions
+2025-05-10 20:04:03 - football_etl - INFO - Searching for team: 1. FC Nürnberg
+2025-05-10 20:04:03 - football_etl - INFO - Found team URL for 1. FC Nürnberg: https://fbref.com/en/squads/6f2c108c/ (ID: 6f2c108c)
+2025-05-10 20:04:03 - football_etl - INFO - Trying 2024-2025 fixtures URL: https://fbref.com/en/squads/6f2c108c/2024-2025/matchlogs/all_comps/schedule/1.-FC-Nürnberg-Scores-and-Fixtures-All-Competitions
+2025-05-10 20:04:04 - football_etl - WARNING - No team URL found for Sumqayıt FK
+2025-05-10 20:04:04 - football_etl - WARNING - Cannot scrape history for Sumqayıt FK: team URL not found
+2025-05-10 20:04:04 - football_etl - INFO - Scraping 7 most recent matches for team: Toulouse
+2025-05-10 20:04:04 - football_etl - INFO - Searching for team: Toulouse
+2025-05-10 20:04:04 - football_etl - INFO - Found match table with id=matchlogs_for
+2025-05-10 20:04:04 - football_etl - INFO - Found 36 matches for 1. FC Nürnberg in season 2024-2025
+2025-05-10 20:04:04 - football_etl - INFO - Found team URL for Toulouse: https://fbref.com/en/squads/3f8c4b5f/ (ID: 3f8c4b5f)
+2025-05-10 20:04:04 - football_etl - INFO - Trying 2024-2025 fixtures URL: https://fbref.com/en/squads/3f8c4b5f/2024-2025/matchlogs/all_comps/schedule/Toulouse-Scores-and-Fixtures-All-Competitions
+2025-05-10 20:04:05 - football_etl - INFO - Scraping match details from: https://fbref.com/en/matches/b85153a5/Karlsruher-Nurnberg-August-3-2024-2-Bundesliga
+2025-05-10 20:04:06 - football_etl - WARNING - Could not identify our team (1. FC Nürnberg) on match page
+2025-05-10 20:04:08 - football_etl - WARNING - No data scraped for team: Sumqayıt FK
+2025-05-10 20:04:08 - football_etl - INFO - Scraping match details from: https://fbref.com/en/matches/09d9ae86/Nurnberg-Schalke-04-August-10-2024-2-Bundesliga
+2025-05-10 20:04:08 - football_etl - INFO - Found match table with id=matchlogs_for
+2025-05-10 20:04:08 - football_etl - INFO - Found 37 matches for Toulouse in season 2024-2025
+2025-05-10 20:04:09 - football_etl - INFO - Scraping match details from: https://fbref.com/en/matches/67b3b54c/Toulouse-Nantes-August-18-2024-Ligue-1
+2025-05-10 20:26:42 - football_etl - INFO - ==================== STARTING Football Data ETL PIPELINE ====================
+2025-05-10 20:26:42 - football_etl - INFO - Step 1: Scraping fixtures from 2025-05-10 to 2025-05-24
+2025-05-10 20:26:42 - football_etl - INFO - ---------- Starting job: SofaScore fixtures scraping (2025-05-10 to 2025-05-24) ----------
+2025-05-10 20:26:42 - football_etl - INFO - Scraping fixtures for 6 leagues
+2025-05-10 20:27:39 - football_etl - INFO - Scraped 1277 fixtures
+2025-05-10 20:27:39 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_fixtures_20250510_20250524.csv
+2025-05-10 20:27:39 - football_etl - INFO - Job statistics: {'fixtures_count': 1277, 'leagues_found': 51, 'start_date': '2025-05-10', 'end_date': '2025-05-24'}
+2025-05-10 20:27:39 - football_etl - INFO - ---------- Completed job: SofaScore fixtures scraping ----------
+2025-05-10 20:27:39 - football_etl - INFO - Step 2: Processing fixtures data
+2025-05-10 20:27:39 - football_etl - INFO - ---------- Starting job: Processing fixtures data ----------
+2025-05-10 20:27:39 - football_etl - WARNING - Fixtures data validation failed: {'valid': False, 'missing_columns': [], 'missing_values': {}, 'record_count': 1277, 'duplicate_ids': 628}
+2025-05-10 20:27:39 - football_etl - WARNING - Dropping 628 duplicate fixtures
+2025-05-10 20:27:39 - football_etl - INFO - Processed 649 fixtures
+2025-05-10 20:27:39 - football_etl - INFO - Processed data saved to /Users/osegonte/football-etl/data/processed/processed_fixtures.csv
+2025-05-10 20:27:39 - football_etl - INFO - Job statistics: {'fixtures_count': 649, 'leagues_count': 51}
+2025-05-10 20:27:39 - football_etl - INFO - ---------- Completed job: Processing fixtures data ----------
+2025-05-10 20:27:39 - football_etl - INFO - Step 3: Scraping team history data (most recent 7 matches)
+2025-05-10 20:27:39 - football_etl - INFO - ---------- Starting job: Team history scraping for 599 teams ----------
+2025-05-10 20:27:39 - football_etl - INFO - Will collect 7 most recent matches for each team
+2025-05-10 20:27:39 - football_etl - INFO - Scraping 7 most recent matches for team: SK Rapid Wien
+2025-05-10 20:27:39 - football_etl - INFO - Scraping 7 most recent matches for team: Ħamrun Spartans
+2025-05-10 20:27:39 - football_etl - INFO - Scraping 7 most recent matches for team: Obolon Kyiv
+2025-05-10 20:27:39 - football_etl - INFO - Searching for team: SK Rapid Wien
+2025-05-10 20:27:39 - football_etl - INFO - Scraping 7 most recent matches for team: Red Bull Salzburg
+2025-05-10 20:27:39 - football_etl - INFO - Searching for team: Ħamrun Spartans
+2025-05-10 20:27:39 - football_etl - INFO - Searching for team: Obolon Kyiv
+2025-05-10 20:27:39 - football_etl - INFO - Searching for team: Red Bull Salzburg
+2025-05-10 20:44:53 - football_etl - INFO - ==================== STARTING Football Data ETL PIPELINE ====================
+2025-05-10 20:44:53 - football_etl - INFO - Step 1: Scraping fixtures from 2025-05-10 to 2025-05-24
+2025-05-10 20:44:53 - football_etl - INFO - ---------- Starting job: SofaScore fixtures scraping (2025-05-10 to 2025-05-24) ----------
+2025-05-10 20:44:53 - football_etl - INFO - Scraping fixtures for 6 leagues
+2025-05-10 20:45:54 - football_etl - INFO - Scraped 1279 fixtures
+2025-05-10 20:45:54 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_fixtures_20250510_20250524.csv
+2025-05-10 20:45:54 - football_etl - INFO - Job statistics: {'fixtures_count': 1279, 'leagues_found': 52, 'start_date': '2025-05-10', 'end_date': '2025-05-24'}
+2025-05-10 20:45:54 - football_etl - INFO - ---------- Completed job: SofaScore fixtures scraping ----------
+2025-05-10 20:45:54 - football_etl - INFO - Step 2: Processing fixtures data
+2025-05-10 20:45:54 - football_etl - INFO - ---------- Starting job: Processing fixtures data ----------
+2025-05-10 20:45:54 - football_etl - WARNING - Fixtures data validation failed: {'valid': False, 'missing_columns': [], 'missing_values': {}, 'record_count': 1279, 'duplicate_ids': 629}
+2025-05-10 20:45:54 - football_etl - WARNING - Dropping 629 duplicate fixtures
+2025-05-10 20:45:54 - football_etl - INFO - Processed 650 fixtures
+2025-05-10 20:45:54 - football_etl - INFO - Processed data saved to /Users/osegonte/football-etl/data/processed/processed_fixtures.csv
+2025-05-10 20:45:54 - football_etl - INFO - Job statistics: {'fixtures_count': 650, 'leagues_count': 52}
+2025-05-10 20:45:54 - football_etl - INFO - ---------- Completed job: Processing fixtures data ----------
+2025-05-10 20:45:54 - football_etl - INFO - Step 3: Scraping team history data (most recent 7 matches)
+2025-05-10 20:45:54 - football_etl - INFO - Limited to 5 teams
+2025-05-10 20:45:54 - football_etl - INFO - ---------- Starting job: Team history scraping for 5 teams ----------
+2025-05-10 20:45:54 - football_etl - INFO - Will collect 7 most recent matches for each team
+2025-05-10 20:45:54 - football_etl - INFO - Scraping 7 most recent matches for team: Oleksandria
+2025-05-10 20:45:54 - football_etl - INFO - Scraping 7 most recent matches for team: US Ben Guerdane
+2025-05-10 20:45:54 - football_etl - INFO - Scraping 7 most recent matches for team: National Bank of Egypt
+2025-05-10 20:45:54 - football_etl - INFO - Scraping 7 most recent matches for team: SV Rödinghausen
+2025-05-10 20:45:54 - football_etl - INFO - Searching for team: Oleksandria
+2025-05-10 20:45:54 - football_etl - INFO - Searching for team: US Ben Guerdane
+2025-05-10 20:45:54 - football_etl - INFO - Searching for team: National Bank of Egypt
+2025-05-10 20:45:54 - football_etl - INFO - Searching for team: SV Rödinghausen

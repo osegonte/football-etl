@@ -71,32 +71,33 @@ id,home_team,away_team,league,country,start_timestamp,start_time,status,venue,ro
 13715410,England U17,Belgium U17,"U17 European Championship, Group B",Europe,1747757700,18:15,Not started,,1,api
 13715411,Italy U17,Czechia U17,"U17 European Championship, Group B",Europe,1747771200,22:00,Not started,,1,api
 13342368,HJK,SJK,Veikkausliiga,Finland,1747749600,16:00,Not started,,,api
-13554087,FC Torpedo Kutaisi,FC Kolkheti-1913 Poti,Erovnuli Liga,Georgia,1747756800,18:00,Not started,,16,api
-13306035,Breidablik Kópavogur,Valur Reykjavík,Efsta deild,Iceland,1747673100,18:45,Not started,,7,api
-13306036,ÍA Akranes,FH Hafnarfjörður,Efsta deild,Iceland,1747691100,23:45,Not started,,7,api
-13597545,Beitar Jerusalem,Hapoel Be'er Sheva,"Premier League, Championship Round",Israel,1747683900,21:45,Not started,,35,api
-13597543,Maccabi Haifa,Maccabi Tel Aviv,"Premier League, Championship Round",Israel,1747668600,17:30,Not started,,35,api
-13778504,Yokohama FC,Machida Zelvia,J. League Cup,Japan,1747823400,12:30,Not started,,3,api
-13778506,Albirex Niigata,Tokyo Verdy,J. League Cup,Japan,1747813500,09:45,Not started,,3,api
-13778508,Jubilo Iwata,Gamba Osaka,J. League Cup,Japan,1747827900,13:45,Not started,,3,api
-13778507,Kataller Toyama,Avispa Fukuoka,J. League Cup,Japan,1747830600,14:30,Not started,,3,api
-13778509,Kyoto Sanga FC,Cerezo Osaka,J. League Cup,Japan,1747827900,13:45,Not started,,3,api
-13778503,Renofa Yamaguchi FC,Kashiwa Reysol,J. League Cup,Japan,1747826100,13:15,Not started,,3,api
-13778505,Shonan Bellmare,FC Tokyo,J. League Cup,Japan,1747819800,11:30,Not started,,3,api
-13494642,Riga FC,FK Liepaja,Virsliga,Latvia,1747673100,18:45,Not started,,14,api
-13494644,FK Auda,BFC Daugava Daugavpils,Virsliga,Latvia,1747755900,17:45,Not started,,14,api
-13494646,RFS,FK Metta,Virsliga,Latvia,1747758600,18:30,Not started,,14,api
-12420855,Chrobry Głogów,Ruch Chorzów,I liga,Poland,1747668600,17:30,Not started,,33,api
-12420854,Miedź Legnica,Bruk-Bet Termalica Nieciecza,I liga,Poland,1747677600,20:00,Not started,,33,api
-12493817,KAMAZ Naberezhnye Chelny,Alania Vladikavkaz,First League,Russia,1747675800,19:30,Not started,,33,api
-12493825,Neftekhimik Nizhnekamsk,Chernomorets Novorossijsk,First League,Russia,1747671300,18:15,Not started,,33,api
-12246913,Young Lions,Hougang United,Premier League,Singapore,1747656000,14:00,Not started,,35,api
-13702382,Brunei DPMM FC,Lion City Sailors,"Singapore Cup, Playoffs",Singapore,1747836900,16:15,Not started,,28,api
+13554084,FC Dila Gori,FC Samgurali Tskhaltubo,Erovnuli Liga,Georgia,1747741500,13:45,Not started,,16,api
+13554087,FC Torpedo Kutaisi,FC Kolkheti-1913 Poti,Erovnuli Liga,Georgia,1747751400,16:30,Not started,,16,api
+13306035,Breidablik Kópavogur,Valur Reykjavík,Efsta deild,Iceland,1747691100,23:45,Not started,,7,api
+13306036,ÍA Akranes,FH Hafnarfjörður,Efsta deild,Iceland,1747679400,20:30,Not started,,7,api
+13597545,Beitar Jerusalem,Hapoel Be'er Sheva,"Premier League, Championship Round",Israel,1747668600,17:30,Not started,,35,api
+13597543,Maccabi Haifa,Maccabi Tel Aviv,"Premier League, Championship Round",Israel,1747679400,20:30,Not started,,35,api
+13778504,Yokohama FC,Machida Zelvia,J. League Cup,Japan,1747819800,11:30,Not started,,3,api
+13778506,Albirex Niigata,Tokyo Verdy,J. League Cup,Japan,1747827900,13:45,Not started,,3,api
+13778508,Jubilo Iwata,Gamba Osaka,J. League Cup,Japan,1747830600,14:30,Not started,,3,api
+13778507,Kataller Toyama,Avispa Fukuoka,J. League Cup,Japan,1747827900,13:45,Not started,,3,api
+13778509,Kyoto Sanga FC,Cerezo Osaka,J. League Cup,Japan,1747819800,11:30,Not started,,3,api
+13778503,Renofa Yamaguchi FC,Kashiwa Reysol,J. League Cup,Japan,1747819800,11:30,Not started,,3,api
+13778505,Shonan Bellmare,FC Tokyo,J. League Cup,Japan,1747825200,13:00,Not started,,3,api
+13494642,Riga FC,FK Liepaja,Virsliga,Latvia,1747662300,15:45,Not started,,14,api
+13494644,FK Auda,BFC Daugava Daugavpils,Virsliga,Latvia,1747754100,17:15,Not started,,14,api
+13494646,RFS,FK Metta,Virsliga,Latvia,1747752300,16:45,Not started,,14,api
+12420855,Chrobry Głogów,Ruch Chorzów,I liga,Poland,1747672200,18:30,Not started,,33,api
+12420854,Miedź Legnica,Bruk-Bet Termalica Nieciecza,I liga,Poland,1747683000,21:30,Not started,,33,api
+12493817,KAMAZ Naberezhnye Chelny,Alania Vladikavkaz,First League,Russia,1747672200,18:30,Not started,,33,api
+12493825,Neftekhimik Nizhnekamsk,Chernomorets Novorossijsk,First League,Russia,1747660500,15:15,Not started,,33,api
+12246913,Young Lions,Hougang United,Premier League,Singapore,1747663200,16:00,Not started,,35,api
+13702382,Brunei DPMM FC,Lion City Sailors,"Singapore Cup, Playoffs",Singapore,1747822500,12:15,Not started,,28,api
 13792502,Brunei DPMM FC,Lion City Sailors,"Singapore Cup, Playoffs",Singapore,1747829700,14:15,Not started,,28,api
-13292638,Landskrona BoIS,Helsingborgs IF,Superettan,Sweden,1747675800,19:30,Not started,,8,api
-13342537,BK Olympic,Ängelholms FF,"Ettan, Sodra",Sweden,1747670400,18:00,Not started,,8,api
-13292741,Djurgårdens IF DFF,AIK,Damallsvenskan,Sweden,1747752300,16:45,Not started,,8,api
-13874117,New England Revolution,Chicago Fire,US Open Cup,USA,1747786500,02:15,Not started,,5,api
-13874120,San Jose Earthquakes,Portland Timbers,US Open Cup,USA,1747803600,07:00,Not started,,5,api
-13858079,Racing de Montevideo,Miramar Misiones,"Liga AUF Uruguaya, Apertura",Uruguay,1747674900,19:15,Not started,,15,api
-13858076,Boston River,Cerro,"Liga AUF Uruguaya, Apertura",Uruguay,1747693800,00:30,Not started,,15,api
+13292638,Landskrona BoIS,Helsingborgs IF,Superettan,Sweden,1747668600,17:30,Not started,,8,api
+13342537,BK Olympic,Ängelholms FF,"Ettan, Sodra",Sweden,1747663200,16:00,Not started,,8,api
+13292741,Djurgårdens IF DFF,AIK,Damallsvenskan,Sweden,1747763100,19:45,Not started,,8,api
+13874117,New England Revolution,Chicago Fire,US Open Cup,USA,1747792800,04:00,Not started,,5,api
+13874120,San Jose Earthquakes,Portland Timbers,US Open Cup,USA,1747793700,04:15,Not started,,5,api
+13858079,Racing de Montevideo,Miramar Misiones,"Liga AUF Uruguaya, Apertura",Uruguay,1747684800,22:00,Not started,,15,api
+13858076,Boston River,Cerro,"Liga AUF Uruguaya, Apertura",Uruguay,1747696500,01:15,Not started,,15,api

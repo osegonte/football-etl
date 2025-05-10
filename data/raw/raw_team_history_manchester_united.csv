@@ -1,0 +1,4 @@
+team,season,date,competition,venue,opponent,result,goals_for,goals_against,is_home,home_team,away_team,match_id,match_url
+Man United,2024-2025,2024-08-10,FA Community Shield,Away,Man City,D,16.0,17.0,0,Man City,Manchester United,20240810_mancity_manchesterunited,https://fbref.com/en/matches/923aa854/Manchester-Derby-Manchester-City-Manchester-United-August-10-2024-FA-Community-Shield
+Man United,2024-2025,2024-08-16,Premier League,Home,Fulham,W,1.0,0.0,1,Manchester United,Fulham,20240816_manchesterunited_fulham,https://fbref.com/en/matches/cc5b4244/Manchester-United-Fulham-August-16-2024-Premier-League
+Man United,2024-2025,2024-08-24,Premier League,Away,Brighton,L,1.0,2.0,0,Brighton,Manchester United,20240824_brighton_manchesterunited,https://fbref.com/en/matches/fc8ab8b2/Brighton-and-Hove-Albion-Manchester-United-August-24-2024-Premier-League

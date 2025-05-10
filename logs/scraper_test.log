@@ -1,0 +1,70 @@
+2025-05-10 20:52:35 - scraper_test - INFO - Starting Team Scraper Test
+2025-05-10 20:52:35 - scraper_test - INFO - === Testing Individual Team Scraping ===
+2025-05-10 20:52:35 - scraper_test - INFO - Testing team: Manchester United
+2025-05-10 20:52:35 - scraper_test - INFO - Searching for team: Manchester United
+2025-05-10 21:04:09 - scraper_test - INFO - Found fallback team URL for Manchester United: https://fbref.com/en/squads/19538871/
+2025-05-10 21:04:09 - scraper_test - INFO - Team URL for Manchester United: https://fbref.com/en/squads/19538871/
+2025-05-10 21:04:09 - scraper_test - INFO - Attempting basic scrape for Manchester United
+2025-05-10 21:04:09 - scraper_test - INFO - Performing basic scrape for Manchester United
+2025-05-10 21:04:09 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/19538871/2024-2025/matchlogs/all_comps/schedule/Manchester-United-Scores-and-Fixtures-All-Competitions
+2025-05-10 21:04:09 - scraper_test - INFO - Found match table with id=matchlogs_for
+2025-05-10 21:04:10 - scraper_test - INFO - Found 60 matches for Manchester United in season 2024-2025
+2025-05-10 21:04:10 - scraper_test - INFO - Basic scrape result: 3 rows
+2025-05-10 21:04:10 - scraper_test - INFO - Attempting detailed scrape for Manchester United
+2025-05-10 21:04:10 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/19538871/2024-2025/matchlogs/all_comps/schedule/Manchester-United-Scores-and-Fixtures-All-Competitions
+2025-05-10 21:04:10 - scraper_test - INFO - Found match table with id=matchlogs_for
+2025-05-10 21:04:10 - scraper_test - INFO - Found 60 matches for Manchester United in season 2024-2025
+2025-05-10 21:04:11 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/923aa854/Manchester-Derby-Manchester-City-Manchester-United-August-10-2024-FA-Community-Shield
+2025-05-10 21:04:13 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/cc5b4244/Manchester-United-Fulham-August-16-2024-Premier-League
+2025-05-10 21:04:16 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/fc8ab8b2/Brighton-and-Hove-Albion-Manchester-United-August-24-2024-Premier-League
+2025-05-10 21:04:18 - scraper_test - INFO - Scraped 3 matches for Manchester United (season 2024-2025)
+2025-05-10 21:04:18 - scraper_test - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_team_history_manchester_united.csv
+2025-05-10 21:04:18 - scraper_test - INFO - Detailed scrape result: 3 rows
+2025-05-10 21:04:18 - scraper_test - INFO - Completed test for Manchester United
+
+2025-05-10 21:04:20 - scraper_test - INFO - Testing team: Arsenal
+2025-05-10 21:04:20 - scraper_test - INFO - Searching for team: Arsenal
+2025-05-10 21:04:20 - scraper_test - INFO - Found team URL for Arsenal: https://fbref.com/en/squads/18bb7c10/
+2025-05-10 21:04:20 - scraper_test - INFO - Team URL for Arsenal: https://fbref.com/en/squads/18bb7c10/
+2025-05-10 21:04:20 - scraper_test - INFO - Attempting basic scrape for Arsenal
+2025-05-10 21:04:20 - scraper_test - INFO - Performing basic scrape for Arsenal
+2025-05-10 21:04:20 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/18bb7c10/2024-2025/matchlogs/all_comps/schedule/Arsenal-Scores-and-Fixtures-All-Competitions
+2025-05-10 21:04:22 - scraper_test - INFO - Found match table with id=matchlogs_for
+2025-05-10 21:04:22 - scraper_test - INFO - Found 58 matches for Arsenal in season 2024-2025
+2025-05-10 21:04:22 - scraper_test - INFO - Basic scrape result: 3 rows
+2025-05-10 21:04:22 - scraper_test - INFO - Attempting detailed scrape for Arsenal
+2025-05-10 21:04:22 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/18bb7c10/2024-2025/matchlogs/all_comps/schedule/Arsenal-Scores-and-Fixtures-All-Competitions
+2025-05-10 21:04:22 - scraper_test - INFO - Found match table with id=matchlogs_for
+2025-05-10 21:04:22 - scraper_test - INFO - Found 58 matches for Arsenal in season 2024-2025
+2025-05-10 21:04:23 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/c0e3342a/Arsenal-Wolverhampton-Wanderers-August-17-2024-Premier-League
+2025-05-10 21:04:26 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/4692171a/Aston-Villa-Arsenal-August-24-2024-Premier-League
+2025-05-10 21:04:28 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/a843d023/Arsenal-Brighton-and-Hove-Albion-August-31-2024-Premier-League
+2025-05-10 21:04:30 - scraper_test - INFO - Scraped 3 matches for Arsenal (season 2024-2025)
+2025-05-10 21:04:30 - scraper_test - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_team_history_arsenal.csv
+2025-05-10 21:04:30 - scraper_test - INFO - Detailed scrape result: 3 rows
+2025-05-10 21:04:30 - scraper_test - INFO - Completed test for Arsenal
+
+2025-05-10 21:04:32 - scraper_test - INFO - Testing team: Barcelona
+2025-05-10 21:04:32 - scraper_test - INFO - Searching for team: Barcelona
+2025-05-10 21:04:32 - scraper_test - INFO - Found team URL for Barcelona: https://fbref.com/en/squads/206d90db/
+2025-05-10 21:04:32 - scraper_test - INFO - Team URL for Barcelona: https://fbref.com/en/squads/206d90db/
+2025-05-10 21:04:32 - scraper_test - INFO - Attempting basic scrape for Barcelona
+2025-05-10 21:04:32 - scraper_test - INFO - Performing basic scrape for Barcelona
+2025-05-10 21:04:32 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/206d90db/2024-2025/matchlogs/all_comps/schedule/Barcelona-Scores-and-Fixtures-All-Competitions
+2025-05-10 21:04:33 - scraper_test - INFO - Found match table with id=matchlogs_for
+2025-05-10 21:04:33 - scraper_test - INFO - Found 60 matches for Barcelona in season 2024-2025
+2025-05-10 21:04:33 - scraper_test - INFO - Basic scrape result: 3 rows
+2025-05-10 21:04:33 - scraper_test - INFO - Attempting detailed scrape for Barcelona
+2025-05-10 21:04:33 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/206d90db/2024-2025/matchlogs/all_comps/schedule/Barcelona-Scores-and-Fixtures-All-Competitions
+2025-05-10 21:04:34 - scraper_test - INFO - Found match table with id=matchlogs_for
+2025-05-10 21:04:34 - scraper_test - INFO - Found 60 matches for Barcelona in season 2024-2025
+2025-05-10 21:04:35 - scraper_test - INFO - Scraping match details from: https://fbref.com/en/matches/6f0fac43/Valencia-Barcelona-August-17-2024-La-Liga
+2025-05-10 21:12:51 - scraper_test - INFO - Starting Team Scraper Test
+2025-05-10 21:12:51 - scraper_test - INFO - === Testing Individual Team Scraping ===
+2025-05-10 21:12:51 - scraper_test - INFO - Testing team: Manchester United
+2025-05-10 21:12:51 - scraper_test - INFO - Searching for team: Manchester United (normalized: Man United)
+2025-05-10 21:12:51 - scraper_test - INFO - Found predefined URL for Manchester United: https://fbref.com/en/squads/19538871/Manchester-United-Stats
+2025-05-10 21:12:51 - scraper_test - INFO - Team URL for Manchester United: https://fbref.com/en/squads/19538871/Manchester-United-Stats
+2025-05-10 21:12:51 - scraper_test - INFO - Attempting basic scrape for Manchester United
+2025-05-10 21:12:51 - scraper_test - INFO - Performing basic scrape for Manchester United
+2025-05-10 21:12:51 - scraper_test - INFO - Fetching fixtures from: https://fbref.com/en/squads/19538871/2024-2025/matchlogs/all_comps/schedule/Manchester-United-Scores-and-Fixtures-All-Competitions

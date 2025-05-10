@@ -1,0 +1,4 @@
+team,season,date,competition,venue,opponent,result,goals_for,goals_against,is_home,home_team,away_team,match_id,match_url
+Arsenal,2024-2025,2024-08-17,Premier League,Home,Wolverhampton Wanderers,W,2.0,0.0,1,Arsenal,Wolverhampton Wanderers,20240817_arsenal_wolverhamptonwanderers,https://fbref.com/en/matches/c0e3342a/Arsenal-Wolverhampton-Wanderers-August-17-2024-Premier-League
+Arsenal,2024-2025,2024-08-24,Premier League,Away,Aston Villa,W,2.0,0.0,0,Aston Villa,Arsenal,20240824_astonvilla_arsenal,https://fbref.com/en/matches/4692171a/Aston-Villa-Arsenal-August-24-2024-Premier-League
+Arsenal,2024-2025,2024-08-31,Premier League,Home,Brighton,D,1.0,1.0,1,Arsenal,Brighton,20240831_arsenal_brighton,https://fbref.com/en/matches/a843d023/Arsenal-Brighton-and-Hove-Albion-August-31-2024-Premier-League
