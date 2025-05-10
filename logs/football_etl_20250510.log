@@ -23,3 +23,92 @@ Traceback (most recent call last):
 AttributeError: 'TeamHistoryScraper' object has no attribute 'scrape_teams_from_fixtures'
 2025-05-10 18:51:07 - football_etl - INFO - Pipeline statistics: {'status': 'failed', 'error': "'TeamHistoryScraper' object has no attribute 'scrape_teams_from_fixtures'"}
 2025-05-10 18:51:07 - football_etl - INFO - ==================== COMPLETED Football Data ETL PIPELINE ====================
+2025-05-10 19:03:03 - football_etl - INFO - ==================== STARTING Football Data ETL PIPELINE ====================
+2025-05-10 19:03:03 - football_etl - INFO - Step 1: Scraping fixtures from 2025-05-10 to 2025-05-24
+2025-05-10 19:03:03 - football_etl - INFO - ---------- Starting job: SofaScore fixtures scraping (2025-05-10 to 2025-05-24) ----------
+2025-05-10 19:03:03 - football_etl - INFO - Scraping fixtures for 6 leagues
+2025-05-10 19:04:00 - football_etl - INFO - Scraped 1277 fixtures
+2025-05-10 19:04:00 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_fixtures_20250510_20250524.csv
+2025-05-10 19:04:00 - football_etl - INFO - Job statistics: {'fixtures_count': 1277, 'leagues_found': 51, 'start_date': '2025-05-10', 'end_date': '2025-05-24'}
+2025-05-10 19:04:00 - football_etl - INFO - ---------- Completed job: SofaScore fixtures scraping ----------
+2025-05-10 19:04:00 - football_etl - INFO - Step 2: Processing fixtures data
+2025-05-10 19:04:00 - football_etl - INFO - ---------- Starting job: Processing fixtures data ----------
+2025-05-10 19:04:00 - football_etl - WARNING - Fixtures data validation failed: {'valid': False, 'missing_columns': [], 'missing_values': {}, 'record_count': 1277, 'duplicate_ids': 628}
+2025-05-10 19:04:00 - football_etl - WARNING - Dropping 628 duplicate fixtures
+2025-05-10 19:04:00 - football_etl - INFO - Processed 649 fixtures
+2025-05-10 19:04:00 - football_etl - INFO - Processed data saved to /Users/osegonte/football-etl/data/processed/processed_fixtures.csv
+2025-05-10 19:04:00 - football_etl - INFO - Job statistics: {'fixtures_count': 649, 'leagues_count': 51}
+2025-05-10 19:04:00 - football_etl - INFO - ---------- Completed job: Processing fixtures data ----------
+2025-05-10 19:04:00 - football_etl - INFO - Step 3: Scraping team history data (most recent 7 matches)
+2025-05-10 19:04:00 - football_etl - INFO - ---------- Starting job: FBref team history scraping for 599 teams ----------
+2025-05-10 19:04:00 - football_etl - INFO - Will collect 7 most recent matches for each team
+2025-05-10 19:04:00 - football_etl - INFO - Scraping 7 most recent matches for team: Le Havre
+2025-05-10 19:04:00 - football_etl - INFO - Scraping 7 most recent matches for team: Cremonese U20
+2025-05-10 19:04:00 - football_etl - INFO - Scraping 7 most recent matches for team: Sliema Wanderers
+2025-05-10 19:04:00 - football_etl - INFO - Scraping 7 most recent matches for team: Real Valladolid
+2025-05-10 19:04:00 - football_etl - INFO - Searching for team: Le Havre
+2025-05-10 19:04:00 - football_etl - INFO - Searching for team: Cremonese U20
+2025-05-10 19:04:00 - football_etl - INFO - Searching for team: Sliema Wanderers
+2025-05-10 19:04:00 - football_etl - INFO - Searching for team: Real Valladolid
+2025-05-10 19:04:00 - football_etl - WARNING - No team URL found for Cremonese U20
+2025-05-10 19:04:00 - football_etl - WARNING - Cannot scrape history for Cremonese U20: team URL not found
+2025-05-10 19:04:00 - football_etl - INFO - Scraping 7 most recent matches for team: SV Meppen
+2025-05-10 19:04:00 - football_etl - WARNING - No data scraped for team: Cremonese U20
+2025-05-10 19:04:00 - football_etl - INFO - Searching for team: SV Meppen
+2025-05-10 19:04:01 - football_etl - INFO - Found team URL for Real Valladolid: https://fbref.com/en/squads/17859612/
+2025-05-10 19:04:01 - football_etl - INFO - Found team URL for Sliema Wanderers: https://fbref.com/en/squads/7465f27b/
+2025-05-10 19:04:01 - football_etl - INFO - Found team URL for Le Havre: https://fbref.com/en/squads/5c2737db/
+2025-05-10 19:04:01 - football_etl - INFO - Found team URL for SV Meppen: https://fbref.com/en/squads/93e94415/
+2025-05-10 19:04:01 - football_etl - INFO - Fetching fixtures from: https://fbref.com/en/squads/17859612/2024-2025/matchlogs/all_comps/schedule/Valladolid-Scores-and-Fixtures-All-Competitions
+2025-05-10 19:04:02 - football_etl - INFO - Fetching fixtures from: https://fbref.com/en/squads/5c2737db/2024-2025/matchlogs/all_comps/schedule/Le-Havre-Scores-and-Fixtures-All-Competitions
+2025-05-10 19:04:02 - football_etl - INFO - Fetching fixtures from: https://fbref.com/en/squads/7465f27b/2024-2025/matchlogs/c882/schedule/Sliema-Wanderers-Scores-and-Fixtures-Conference-League
+2025-05-10 19:04:02 - football_etl - INFO - Fetching fixtures from: https://fbref.com/en/squads/93e94415/2024-2025/matchlogs/c521/schedule/Meppen-Scores-and-Fixtures-DFB-Pokal
+2025-05-10 19:04:02 - football_etl - INFO - Scraped 0 matches for Sliema Wanderers
+2025-05-10 19:04:02 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_team_history_sliema_wanderers.csv
+2025-05-10 19:04:02 - football_etl - INFO - Scraping 7 most recent matches for team: SK Sturm Graz
+2025-05-10 19:04:02 - football_etl - INFO - Searching for team: SK Sturm Graz
+2025-05-10 19:04:02 - football_etl - INFO - Found team URL for SK Sturm Graz: https://fbref.com/en/squads/3f4fe568/
+2025-05-10 19:04:03 - football_etl - INFO - Scraped 0 matches for Le Havre
+2025-05-10 19:04:03 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_team_history_le_havre.csv
+2025-05-10 19:04:03 - football_etl - INFO - Scraping 7 most recent matches for team: Real Sociedad
+2025-05-10 19:04:03 - football_etl - INFO - Searching for team: Real Sociedad
+2025-05-10 19:04:03 - football_etl - INFO - Scraped 0 matches for SV Meppen
+2025-05-10 19:04:03 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_team_history_sv_meppen.csv
+2025-05-10 19:04:03 - football_etl - INFO - Scraping 7 most recent matches for team: CA Bizertin
+2025-05-10 19:04:03 - football_etl - INFO - Searching for team: CA Bizertin
+2025-05-10 19:04:03 - football_etl - INFO - Scraped 0 matches for Real Valladolid
+2025-05-10 19:04:03 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_team_history_real_valladolid.csv
+2025-05-10 19:04:03 - football_etl - INFO - Scraping 7 most recent matches for team: Floriana
+2025-05-10 19:04:03 - football_etl - INFO - Searching for team: Floriana
+2025-05-10 19:04:03 - football_etl - INFO - Fetching fixtures from: https://fbref.com/en/squads/3f4fe568/2024-2025/matchlogs/all_comps/schedule/Sturm-Graz-Scores-and-Fixtures-All-Competitions
+2025-05-10 19:04:03 - football_etl - WARNING - No data scraped for team: Sliema Wanderers
+2025-05-10 19:04:08 - football_etl - WARNING - No data scraped for team: Le Havre
+2025-05-10 19:04:13 - football_etl - WARNING - No data scraped for team: SV Meppen
+2025-05-10 19:04:15 - football_etl - WARNING - No data scraped for team: Real Valladolid
+2025-05-10 19:31:15 - football_etl - INFO - ==================== STARTING Football Data ETL PIPELINE ====================
+2025-05-10 19:31:15 - football_etl - INFO - Step 1: Scraping fixtures from 2025-05-10 to 2025-05-24
+2025-05-10 19:31:15 - football_etl - INFO - ---------- Starting job: SofaScore fixtures scraping (2025-05-10 to 2025-05-24) ----------
+2025-05-10 19:31:15 - football_etl - INFO - Scraping fixtures for 6 leagues
+2025-05-10 19:32:14 - football_etl - INFO - Scraped 1277 fixtures
+2025-05-10 19:32:14 - football_etl - INFO - Raw data saved to /Users/osegonte/football-etl/data/raw/raw_fixtures_20250510_20250524.csv
+2025-05-10 19:32:14 - football_etl - INFO - Job statistics: {'fixtures_count': 1277, 'leagues_found': 51, 'start_date': '2025-05-10', 'end_date': '2025-05-24'}
+2025-05-10 19:32:14 - football_etl - INFO - ---------- Completed job: SofaScore fixtures scraping ----------
+2025-05-10 19:32:14 - football_etl - INFO - Step 2: Processing fixtures data
+2025-05-10 19:32:14 - football_etl - INFO - ---------- Starting job: Processing fixtures data ----------
+2025-05-10 19:32:14 - football_etl - WARNING - Fixtures data validation failed: {'valid': False, 'missing_columns': [], 'missing_values': {}, 'record_count': 1277, 'duplicate_ids': 628}
+2025-05-10 19:32:14 - football_etl - WARNING - Dropping 628 duplicate fixtures
+2025-05-10 19:32:14 - football_etl - INFO - Processed 649 fixtures
+2025-05-10 19:32:14 - football_etl - INFO - Processed data saved to /Users/osegonte/football-etl/data/processed/processed_fixtures.csv
+2025-05-10 19:32:14 - football_etl - INFO - Job statistics: {'fixtures_count': 649, 'leagues_count': 51}
+2025-05-10 19:32:14 - football_etl - INFO - ---------- Completed job: Processing fixtures data ----------
+2025-05-10 19:32:14 - football_etl - INFO - Step 3: Scraping team history data (most recent 7 matches)
+2025-05-10 19:32:14 - football_etl - INFO - ---------- Starting job: FBref team history scraping for 599 teams ----------
+2025-05-10 19:32:14 - football_etl - INFO - Will collect 7 most recent matches for each team
+2025-05-10 19:32:14 - football_etl - INFO - Scraping 7 most recent matches for team: FC Kyzylzhar
+2025-05-10 19:32:14 - football_etl - INFO - Scraping 7 most recent matches for team: Young Lions
+2025-05-10 19:32:14 - football_etl - INFO - Scraping 7 most recent matches for team: Independiente Del Valle
+2025-05-10 19:32:14 - football_etl - INFO - Searching for team: FC Kyzylzhar
+2025-05-10 19:32:14 - football_etl - INFO - Scraping 7 most recent matches for team: Sumqayıt FK
+2025-05-10 19:32:14 - football_etl - INFO - Searching for team: Young Lions
+2025-05-10 19:32:14 - football_etl - INFO - Searching for team: Independiente Del Valle
+2025-05-10 19:32:14 - football_etl - INFO - Searching for team: Sumqayıt FK
